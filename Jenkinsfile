@@ -28,16 +28,25 @@ pipeline{
             steps {
                 withCredentials([usernamePassword(credentialsId: 'git-creds', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
                     sh '''
-                    set -e
+                    set -euo pipefail
                     git config --global user.email "jenkins@automation"
                     git config --global user.name "Jenkins CI"
+
+                    # clone fresh into workspace/repo to avoid messing workspace copy
+                    rm -rf repo || true
                     git clone https://$GIT_USER:$GIT_TOKEN@github.com/Ramyaeedara06/Jenkins-ArgoCD-K8smanifests.git repo
                     cd repo/k8
-                    # replace image line (ensure it's unique)
+                    # Update image line in deployment.yaml
                     sed -i "s|image:.*|image: ${IMAGE}:${BUILD_NUMBER}|" deployment.yaml
-                    git add deployment.yaml
-                    git commit -m "ci: update image to ${BUILD_NUMBER}"
-                    git push https://$GIT_USER:$GIT_TOKEN@github.com/Ramyaeedara06/Jenkins-ArgoCD-K8smanifests.git main
+                    # Only commit & push if something changed
+                    if git diff --quiet -- deployment.yaml; then
+                      echo "No change to deployment.yaml; skipping commit/push."
+                    else
+                      git add deployment.yaml
+                      git commit -m "ci: update image to ${BUILD_NUMBER}"
+                      # push via token-authenticated URL (Jenkins masks token in logs)
+                      git push https://$GIT_USER:$GIT_TOKEN@github.com/Ramyaeedara06/Jenkins-ArgoCD-K8smanifests.git main
+                    fi
                     '''
                 }
             }
