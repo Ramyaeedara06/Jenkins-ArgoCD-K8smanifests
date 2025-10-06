@@ -1,7 +1,7 @@
 pipeline{
     agent any
     
-    envirnoment{
+    environment {
         IMAGE = "ramyaeedara015/jenkins-argocd-sampleapp"
         REPO_URL="https://github.com/Ramyaeedara06/Jenkins-ArgoCD-K8smanifests"
     }
