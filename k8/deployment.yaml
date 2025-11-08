@@ -1,21 +1,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: devops-demo
-  labels:
-    app: devops-demo
+  name: cicd-demo
+  namespace: cicd-demo
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: devops-demo
+      app: cicd-demo
   template:
     metadata:
       labels:
-        app: devops-demo
+        app: cicd-demo
     spec:
       containers:
-      - name: devops-demo
-        image: ramyaeedara015/jenkins-argocd-sampleapp:latest
-        ports:
-        - containerPort: 5000
+        - name: cicd-demo
+          image: ramyaeedara015/cicd-demo:latest
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
