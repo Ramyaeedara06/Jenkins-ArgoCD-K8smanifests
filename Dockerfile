@@ -1,6 +1,7 @@
-FROM python:3.9-slim
+FROM node:18-alpine
 WORKDIR /app
-COPY . .
-RUN pip install -r requirements.txt
-EXPOSE 5000
-CMD ["python", "app.py"]
+COPY app/package*.json ./
+RUN npm ci --only=production
+COPY app/ .
+EXPOSE 8080
+CMD ["node", "index.js"]
